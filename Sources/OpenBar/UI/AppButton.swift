@@ -10,7 +10,7 @@ struct AppButton: View {
 
     @State private var hovering = false
     @State private var size: CGSize = .zero
-    @State private var dropEdge: DropEdge?
+    @ObservedObject private var dropTarget = DropTarget.shared
 
     private var app: AppEntry { item.app }
     private var iconSize: CGFloat { (thickness * 0.68).rounded() }
@@ -50,8 +50,8 @@ struct AppButton: View {
                     dragPath: app.path
                 )
             )
-            .onDrop(of: [.fileURL], delegate: BarDropDelegate(target: app, position: position, size: size,
-                                                             edge: $dropEdge))
+            .onDrop(of: [.fileURL], delegate: BarDropDelegate(target: app, itemID: item.id, position: position,
+                                                             size: size))
             .help(showTitle ? "" : item.title)
     }
 
@@ -105,25 +105,22 @@ struct AppButton: View {
         .padding(2)
     }
 
+    private var dropEdge: DropEdge? { dropTarget.itemID == item.id ? dropTarget.edge : nil }
+
     private var dropMarkerAlignment: Alignment {
         switch dropEdge {
         case .before: position.isVertical ? .top : .leading
         case .after: position.isVertical ? .bottom : .trailing
-        case .onto, nil: .center
+        case nil: .center
         }
     }
 
     @ViewBuilder
     private var dropMarker: some View {
-        switch dropEdge {
-        case .before, .after:
+        if dropEdge != nil {
             Capsule().fill(style.highlight)
                 .frame(width: position.isVertical ? nil : 3, height: position.isVertical ? 3 : nil)
                 .padding(position.isVertical ? .horizontal : .vertical, 4)
-        case .onto:
-            RoundedRectangle(cornerRadius: 6).stroke(style.highlight, lineWidth: 2).padding(2)
-        case nil:
-            EmptyView()
         }
     }
 
@@ -156,48 +153,64 @@ struct AppButton: View {
     }
 }
 
-enum DropEdge { case before, after, onto }
+enum DropEdge { case before, after }
 
-/// Dropping an app or folder pins it next to the target; dropping a document onto an
-/// app opens it with that app, like the Dock.
-struct BarDropDelegate: DropDelegate {
-    let target: AppEntry
-    let position: BarPosition
-    let size: CGSize
-    @Binding var edge: DropEdge?
+/// The single drop marker shown on the bar. Kept outside the buttons because SwiftUI
+/// doesn't reliably send dropExited when a drag ends or a button is rebuilt.
+final class DropTarget: ObservableObject {
+    static let shared = DropTarget()
 
-    private func edge(for info: DropInfo, pinning: Bool) -> DropEdge {
-        guard pinning else { return .onto }
-        let along = position.isVertical ? info.location.y / max(size.height, 1) : info.location.x / max(size.width, 1)
-        return along < 0.5 ? .before : .after
+    @Published private(set) var itemID: String?
+    @Published private(set) var edge: DropEdge?
+    private var watchdog: Timer?
+
+    func set(_ itemID: String, _ edge: DropEdge) {
+        if self.itemID != itemID { self.itemID = itemID }
+        if self.edge != edge { self.edge = edge }
+        guard watchdog == nil else { return }
+        watchdog = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
+            if NSEvent.pressedMouseButtons == 0 { self?.clear() }
+        }
     }
 
-    private func isPinnable(_ info: DropInfo) -> Bool {
-        // URLs aren't readable until drop; this only picks the marker, BarDrop decides.
-        info.hasItemsConforming(to: [.application, .folder]) || !info.hasItemsConforming(to: [.data])
+    func clear(_ itemID: String? = nil) {
+        guard itemID == nil || itemID == self.itemID else { return }
+        watchdog?.invalidate()
+        watchdog = nil
+        if self.itemID != nil { self.itemID = nil }
+        if edge != nil { edge = nil }
+    }
+}
+
+/// Apps and folders dropped on the bar are pinned or reordered next to the target;
+/// documents dropped onto an app open with it, like the Dock.
+struct BarDropDelegate: DropDelegate {
+    let target: AppEntry
+    let itemID: String
+    let position: BarPosition
+    let size: CGSize
+
+    private func edge(for info: DropInfo) -> DropEdge {
+        let along = position.isVertical ? info.location.y / max(size.height, 1) : info.location.x / max(size.width, 1)
+        return along < 0.5 ? .before : .after
     }
 
     func validateDrop(info: DropInfo) -> Bool { info.hasItemsConforming(to: [.fileURL]) }
 
     func dropUpdated(info: DropInfo) -> DropProposal? {
-        let pin = isPinnable(info) || !target.isRunning && target.isFolder
-        edge = edge(for: info, pinning: pin)
-        return DropProposal(operation: pin ? .move : .copy)
+        DropTarget.shared.set(itemID, edge(for: info))
+        return DropProposal(operation: .move)
     }
 
-    func dropExited(info: DropInfo) { edge = nil }
+    func dropExited(info: DropInfo) { DropTarget.shared.clear(itemID) }
 
     func performDrop(info: DropInfo) -> Bool {
-        let dropEdge = edge(for: info, pinning: isPinnable(info))
-        edge = nil
+        let dropEdge = edge(for: info)
+        DropTarget.shared.clear()
         let providers = info.itemProviders(for: [.fileURL])
         let target = self.target
         Task { @MainActor in
-            var urls: [URL] = []
-            for provider in providers {
-                if let url = try? await provider.loadFileURL() { urls.append(url.standardizedFileURL) }
-            }
-            BarDrop.handle(urls, onto: target, edge: dropEdge)
+            BarDrop.handle(await providers.loadFileURLs(), onto: target, edge: dropEdge)
         }
         return true
     }
@@ -211,23 +224,9 @@ enum BarDrop {
 
     @MainActor
     static func handle(_ urls: [URL], onto target: AppEntry?, edge: DropEdge) {
-        let prefs = Prefs.shared
         let pins = urls.filter(isPinnable)
         let documents = urls.filter { !isPinnable($0) }
-
-        if !pins.isEmpty {
-            var index: Int
-            if let target, let i = prefs.favorites.firstIndex(of: target.path) {
-                index = edge == .after ? i + 1 : i
-            } else {
-                index = prefs.favorites.count
-            }
-            for url in pins where url.path != target?.path {
-                let before = prefs.favorites.firstIndex(of: url.path)
-                prefs.insertFavorite(url.path, at: index)
-                if before == nil || before! >= index { index += 1 }
-            }
-        }
+        if !pins.isEmpty { place(pins.map(\.path), onto: target, edge: edge) }
 
         if !documents.isEmpty, let target {
             if target.isFolder {
@@ -240,6 +239,55 @@ enum BarDrop {
                                         configuration: NSWorkspace.OpenConfiguration())
             }
         }
+    }
+
+    /// Favorites are reordered among favorites; running apps dropped among running apps
+    /// get a manual order instead of being pinned. Anything else from outside is pinned.
+    @MainActor
+    private static func place(_ paths: [String], onto target: AppEntry?, edge: DropEdge) {
+        let prefs = Prefs.shared
+        let apps = TaskbarModel.shared.apps
+        let running = apps.filter { !$0.isFavorite }.map(\.path)
+        let runningFavorites = Set(apps.filter { $0.isFavorite && $0.isRunning }.map(\.path))
+        let targetIsFavorite = target.map { prefs.isFavorite($0.path) } ?? false
+
+        if let target, !targetIsFavorite, running.contains(target.path) {
+            // A pinned app that isn't running would vanish if unpinned here, so it stays pinned.
+            let movable = paths.filter { running.contains($0) || runningFavorites.contains($0) }
+            if !movable.isEmpty {
+                var order = running.filter { !movable.contains($0) }
+                let anchor = order.firstIndex(of: target.path) ?? order.count
+                order.insert(contentsOf: movable, at: edge == .after ? min(anchor + 1, order.count) : anchor)
+                prefs.favorites.removeAll { movable.contains($0) }
+                prefs.runningOrder = order
+                prefs.appOrder = .manual
+            }
+            let rest = paths.filter { !movable.contains($0) }
+            for path in rest where !prefs.isFavorite(path) { prefs.favorites.append(path) }
+            return
+        }
+
+        var index: Int
+        if let target, let i = prefs.favorites.firstIndex(of: target.path) {
+            index = edge == .after ? i + 1 : i
+        } else {
+            index = prefs.favorites.count
+        }
+        for path in paths where path != target?.path {
+            let before = prefs.favorites.firstIndex(of: path)
+            prefs.insertFavorite(path, at: index)
+            if before == nil || before! >= index { index += 1 }
+        }
+    }
+}
+
+extension [NSItemProvider] {
+    func loadFileURLs() async -> [URL] {
+        var urls: [URL] = []
+        for provider in self {
+            if let url = try? await provider.loadFileURL() { urls.append(url.standardizedFileURL) }
+        }
+        return urls
     }
 }
 

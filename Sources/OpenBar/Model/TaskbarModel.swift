@@ -134,6 +134,7 @@ final class TaskbarModel: ObservableObject {
         let favorites: [String]
         let excluded: Set<String>
         let order: AppOrder
+        let runningOrder: [String]
         let currentSpaceOnly: Bool
         let excludeZeroWindowApps: Bool
         let showBadges: Bool
@@ -150,6 +151,7 @@ final class TaskbarModel: ObservableObject {
             favorites = prefs.favorites
             excluded = Set(prefs.excludedBundleIDs)
             order = prefs.appOrder
+            runningOrder = prefs.runningOrder
             currentSpaceOnly = prefs.currentSpaceOnly
             excludeZeroWindowApps = prefs.excludeZeroWindowApps
             showBadges = prefs.showBadges
@@ -213,6 +215,14 @@ final class TaskbarModel: ObservableObject {
             others.sort { (s.launchOrder[$0.processIdentifier] ?? 0) < (s.launchOrder[$1.processIdentifier] ?? 0) }
         case .alphabetical:
             others.sort { ($0.localizedName ?? "").localizedStandardCompare($1.localizedName ?? "") == .orderedAscending }
+        case .manual:
+            // Apps never dragged keep launch order, after the arranged ones.
+            let rank = Dictionary(s.runningOrder.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
+            func key(_ app: NSRunningApplication) -> (Int, Int) {
+                let path = app.bundleURL?.standardizedFileURL.path ?? ""
+                return (rank[path] ?? Int.max, s.launchOrder[app.processIdentifier] ?? 0)
+            }
+            others.sort { key($0) < key($1) }
         }
 
         for app in others {

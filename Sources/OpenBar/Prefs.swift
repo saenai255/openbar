@@ -21,7 +21,7 @@ enum BarSize: String, CaseIterable, Identifiable {
 }
 
 enum AppOrder: String, CaseIterable, Identifiable {
-    case launch, alphabetical
+    case launch, alphabetical, manual
     var id: String { rawValue }
 }
 
@@ -63,6 +63,8 @@ final class Prefs: ObservableObject {
     @Published var flashAttention: Bool { didSet { store("flashAttention", flashAttention) } }
     @Published var appOrder: AppOrder { didSet { store("appOrder", appOrder.rawValue) } }
     @Published var favorites: [String] { didSet { store("favorites", favorites) } }
+    /// Running (unpinned) app paths in the order the user dragged them.
+    @Published var runningOrder: [String] { didSet { store("runningOrder", runningOrder) } }
     @Published var excludedBundleIDs: [String] { didSet { store("excludedBundleIDs", excludedBundleIDs) } }
 
     @Published var showMenu: Bool { didSet { store("showMenu", showMenu) } }
@@ -108,6 +110,7 @@ final class Prefs: ObservableObject {
         flashAttention = d.object(forKey: "flashAttention") as? Bool ?? true
         favorites = d.stringArray(forKey: "favorites") ?? Prefs.defaultFavorites
         excludedBundleIDs = d.stringArray(forKey: "excludedBundleIDs") ?? []
+        runningOrder = d.stringArray(forKey: "runningOrder") ?? []
 
         showMenu = d.object(forKey: "showMenu") as? Bool ?? true
         showClock = d.object(forKey: "showClock") as? Bool ?? true

@@ -81,12 +81,9 @@ struct BarView: View {
             }
             .scrollDisabled(fits)
             .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                DropTarget.shared.clear()
                 Task { @MainActor in
-                    var urls: [URL] = []
-                    for provider in providers {
-                        if let url = try? await provider.loadFileURL() { urls.append(url.standardizedFileURL) }
-                    }
-                    BarDrop.handle(urls, onto: nil, edge: .after)
+                    BarDrop.handle(await providers.loadFileURLs(), onto: nil, edge: .after)
                 }
                 return true
             }

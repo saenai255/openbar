@@ -123,6 +123,7 @@ private struct AppsSettings: View {
                 Picker("App order", selection: $prefs.appOrder) {
                     Text("Launch order").tag(AppOrder.launch)
                     Text("Alphabetical").tag(AppOrder.alphabetical)
+                    Text("Manual (drag to arrange)").tag(AppOrder.manual)
                 }
                 Toggle("Only show apps on the current Space", isOn: $prefs.currentSpaceOnly)
                 Toggle("Exclude apps with zero windows", isOn: $prefs.excludeZeroWindowApps)

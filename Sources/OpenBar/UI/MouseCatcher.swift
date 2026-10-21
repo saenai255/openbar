@@ -51,6 +51,7 @@ struct MouseCatcher: NSViewRepresentable {
                   hypot(event.locationInWindow.x - start.x, event.locationInWindow.y - start.y) > 5 else { return }
             downInside = false
             config?.onHover?(false, screenRect)
+            PreviewController.shared.dismiss()
             let item = NSDraggingItem(pasteboardWriter: URL(fileURLWithPath: path) as NSURL)
             let icon = IconCache.icon(path)
             let side = min(bounds.width, bounds.height)
@@ -62,6 +63,11 @@ struct MouseCatcher: NSViewRepresentable {
         func draggingSession(_ session: NSDraggingSession,
                              sourceOperationMaskFor context: NSDraggingContext) -> NSDragOperation {
             context == .withinApplication ? .move : .copy
+        }
+
+        func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint,
+                             operation: NSDragOperation) {
+            DropTarget.shared.clear()
         }
 
         override func mouseUp(with event: NSEvent) {

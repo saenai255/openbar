@@ -77,7 +77,7 @@ You can check and grant them any time under **OpenBar Settings → Permissions**
 - Notification badges, a flash when an app wants your attention, a pulse while an app launches, and a striped "Not Responding" look for frozen apps, with **Force Relaunch**.
 
 **Drag and drop**
-- Drag buttons along the bar to reorder your favorites.
+- Drag buttons along the bar to reorder your favorites, or to arrange running apps in your own order.
 - Drop an app or folder from Finder onto the bar to pin it.
 - Drop a document onto an app to open it with that app.
 
