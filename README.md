@@ -23,6 +23,9 @@
 
 OpenBar puts a taskbar along the edge of your screen. Every open window gets a button, so you can see what's running and jump to it in one click. It can sit next to the Dock or replace it entirely.
 
+> [!NOTE]
+> OpenBar is vibecoded: it was built largely with an AI coding assistant, so expect bugs and rough edges. [Issues](https://github.com/saenai255/openbar/issues) and [pull requests](https://github.com/saenai255/openbar/pulls) are very welcome.
+
 ## Install
 
 ### Homebrew
