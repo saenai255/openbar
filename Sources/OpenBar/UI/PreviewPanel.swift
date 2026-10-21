@@ -107,9 +107,23 @@ struct PreviewView: View {
     let onHover: (Bool) -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            ForEach(windows) { window in
-                PreviewCard(app: app, window: window, image: window.windowID.flatMap { images[$0] })
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                ForEach(windows) { window in
+                    PreviewCard(app: app, window: window, image: window.windowID.flatMap { images[$0] })
+                }
+            }
+            if !WindowPreviews.hasPermission {
+                Button {
+                    PreviewController.shared.dismiss()
+                    NSWorkspace.shared.open(URL(string:
+                        "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
+                } label: {
+                    Label("Turn on Screen Recording to see thumbnails, then relaunch OpenBar",
+                          systemImage: "rectangle.dashed.badge.record")
+                        .font(.caption)
+                }
+                .buttonStyle(.link)
             }
         }
         .padding(10)
