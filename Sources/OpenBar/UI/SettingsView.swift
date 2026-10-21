@@ -58,6 +58,7 @@ private struct GeneralSettings: View {
                 Toggle("Clicking the active app hides it when it has one window", isOn: $prefs.clickActiveToHide)
                 Toggle("Display window previews", isOn: $prefs.showPreviews)
                 Toggle("Show app badges", isOn: $prefs.showBadges)
+                Toggle("Flash apps that want attention", isOn: $prefs.flashAttention)
             }
             Section("Dock") {
                 Toggle("Dock-less mode", isOn: $prefs.docklessMode)

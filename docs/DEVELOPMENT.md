@@ -67,6 +67,7 @@ design/icon.swift          draws the app icon; `swift design/icon.swift out.png 
 | Previews | `SCScreenshotManager.captureImage` |
 | Keeping windows clear | `AXObserver` for window created/moved/resized; frames clamped to the usable area |
 | Hung apps | WindowServer notifications 750/751 and `CGSEventIsAppUnresponsive` |
+| Attention requests | LaunchServices `LSWantsAttention` via `_LSCopyApplicationInformationItem` (set even with Dock bouncing off) |
 | Show Desktop | `CoreDockSendNotification("com.apple.showdesktop.awake")` |
 | Lock screen | `SACLockScreenImmediate` from `login.framework` |
 | Power actions | Apple Events to `loginwindow` |

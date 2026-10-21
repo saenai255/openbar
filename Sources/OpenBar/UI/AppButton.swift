@@ -98,7 +98,7 @@ struct AppButton: View {
                 .fill(isFocused ? style.highlight.opacity(0.35) : (hovering ? style.foreground.opacity(0.12) : .clear))
             if app.wantsAttention && !app.isActive {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.orange.opacity(0.55))
+                    .fill(style.badge.opacity(0.5))
                     .pulsing(true, from: 0.15)
             }
         }

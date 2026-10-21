@@ -60,6 +60,7 @@ final class Prefs: ObservableObject {
     @Published var excludeZeroWindowApps: Bool { didSet { store("excludeZeroWindowApps", excludeZeroWindowApps) } }
     @Published var showPreviews: Bool { didSet { store("showPreviews", showPreviews) } }
     @Published var showBadges: Bool { didSet { store("showBadges", showBadges) } }
+    @Published var flashAttention: Bool { didSet { store("flashAttention", flashAttention) } }
     @Published var appOrder: AppOrder { didSet { store("appOrder", appOrder.rawValue) } }
     @Published var favorites: [String] { didSet { store("favorites", favorites) } }
     @Published var excludedBundleIDs: [String] { didSet { store("excludedBundleIDs", excludedBundleIDs) } }
@@ -104,6 +105,7 @@ final class Prefs: ObservableObject {
         excludeZeroWindowApps = d.object(forKey: "excludeZeroWindowApps") as? Bool ?? false
         showPreviews = d.object(forKey: "showPreviews") as? Bool ?? true
         showBadges = d.object(forKey: "showBadges") as? Bool ?? true
+        flashAttention = d.object(forKey: "flashAttention") as? Bool ?? true
         favorites = d.stringArray(forKey: "favorites") ?? Prefs.defaultFavorites
         excludedBundleIDs = d.stringArray(forKey: "excludedBundleIDs") ?? []
 

@@ -142,9 +142,11 @@ final class TaskbarModel: ObservableObject {
         let frontPID: pid_t?
         let displays: [DisplayRect]
         let launching: Set<String>
+        let flashAttention: Bool
 
         init(prefs: Prefs, launchOrder: [pid_t: Int], launching: Set<String>) {
             self.launching = launching
+            flashAttention = prefs.flashAttention
             favorites = prefs.favorites
             excluded = Set(prefs.excludedBundleIDs)
             order = prefs.appOrder
@@ -184,7 +186,9 @@ final class TaskbarModel: ObservableObject {
                             isHidden: app?.isHidden ?? false, isFolder: isFolder, windows: windows,
                             badge: s.showBadges ? badges[path] : nil,
                             isLaunching: s.launching.contains(path) && !settled,
-                            isUnresponsive: app.map { AppHealth.isUnresponsive($0.processIdentifier) } ?? false)
+                            isUnresponsive: app.map { AppHealth.isUnresponsive($0.processIdentifier) } ?? false,
+                            wantsAttention: s.flashAttention && !isActive
+                                && app.map { AppHealth.wantsAttention($0.processIdentifier) } ?? false)
         }
 
         var runningByBundleID: [String: NSRunningApplication] = [:]

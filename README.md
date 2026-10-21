@@ -74,7 +74,7 @@ You can check and grant them any time under **OpenBar Settings → Permissions**
 - Hover for live window previews; click a preview to jump to that window.
 - Middle-click to close a window or open a new one.
 - Right-click for the window list, hide, quit, force quit, pin and exclude.
-- Notification badges, a pulse while an app launches, and a striped "Not Responding" look for frozen apps, with **Force Relaunch**.
+- Notification badges, a flash when an app wants your attention, a pulse while an app launches, and a striped "Not Responding" look for frozen apps, with **Force Relaunch**.
 
 **Drag and drop**
 - Drag buttons along the bar to reorder your favorites.
