@@ -61,6 +61,7 @@ final class Prefs: ObservableObject {
     @Published var showPreviews: Bool { didSet { store("showPreviews", showPreviews) } }
     @Published var showBadges: Bool { didSet { store("showBadges", showBadges) } }
     @Published var flashAttention: Bool { didSet { store("flashAttention", flashAttention) } }
+    @Published var updateFrequency: UpdateFrequency { didSet { store("updateFrequency", updateFrequency.rawValue) } }
     @Published var appOrder: AppOrder { didSet { store("appOrder", appOrder.rawValue) } }
     @Published var favorites: [String] { didSet { store("favorites", favorites) } }
     /// Running (unpinned) app paths in the order the user dragged them.
@@ -108,6 +109,7 @@ final class Prefs: ObservableObject {
         showPreviews = d.object(forKey: "showPreviews") as? Bool ?? true
         showBadges = d.object(forKey: "showBadges") as? Bool ?? true
         flashAttention = d.object(forKey: "flashAttention") as? Bool ?? true
+        updateFrequency = UpdateFrequency(rawValue: str("updateFrequency") ?? "") ?? .weekly
         favorites = d.stringArray(forKey: "favorites") ?? Prefs.defaultFavorites
         excludedBundleIDs = d.stringArray(forKey: "excludedBundleIDs") ?? []
         runningOrder = d.stringArray(forKey: "runningOrder") ?? []

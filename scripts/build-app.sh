@@ -7,6 +7,10 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 CONFIG="${CONFIG:-release}"
 APP="build/OpenBar.app"
+# Local builds take their version from the latest tag so the update check doesn't misfire.
+if [ -z "${VERSION:-}" ]; then
+    VERSION="$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)"
+fi
 # UNIVERSAL=1 builds arm64 + x86_64 (needs Xcode, not just Command Line Tools).
 ARCH_FLAGS=()
 if [ "${UNIVERSAL:-0}" = "1" ]; then ARCH_FLAGS=(--arch arm64 --arch x86_64); fi

@@ -52,6 +52,7 @@ enum MenuBuilder {
         menu.addItem(.separator())
         menu.add("About OpenBar", symbol: "info.circle") { AppDelegate.shared.showAbout() }
         menu.add("Settings…", symbol: "gearshape") { AppDelegate.shared.showSettings() }
+        menu.add("Check for Updates…", symbol: "arrow.down.circle") { UpdateChecker.shared.check(userInitiated: true) }
         menu.addItem(.separator())
         menu.add("System Settings…", symbol: "switch.2") { SystemActions.openSystemSettings() }
         menu.add("Activity Monitor", symbol: "waveform.path.ecg") { SystemActions.openActivityMonitor() }

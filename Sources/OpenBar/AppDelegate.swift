@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = TrayModel.shared
 
         rebuildBars()
+        UpdateChecker.shared.start()
 
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                object: nil, queue: .main) { [weak self] _ in self?.rebuildBars() }

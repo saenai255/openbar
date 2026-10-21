@@ -34,7 +34,7 @@ OpenBar puts a taskbar along the edge of your screen. Every open window gets a b
 brew install --cask saenai255/tap/openbar
 ```
 
-Update later with `brew upgrade --cask openbar`.
+Update later with `brew upgrade --cask openbar`. OpenBar checks for new versions weekly and tells you the command when one is out.
 
 ### Manual download
 
@@ -85,7 +85,7 @@ You can check and grant them any time under **OpenBar Settings → Permissions**
 - Drop a document onto an app to open it with that app.
 
 **Menu and tray**
-- The OpenBar menu: Sleep, Restart, Shut Down, Lock Screen, Log Out, Force Quit, an Applications menu and System Settings.
+- The OpenBar menu: Sleep, Restart, Shut Down, Lock Screen, Log Out, Force Quit, an Applications menu, System Settings and Check for Updates.
 - Clock with a calendar, volume (scroll over it to change, right-click to mute), battery, Trash, and a Show Desktop strip at the far end.
 
 **Appearance**
@@ -101,7 +101,7 @@ If you keep the Dock, put it on a different edge from OpenBar, or set it to auto
 
 Open **Settings** from the OpenBar menu, the first button on the bar. You can also launch OpenBar again from Applications while it's running.
 
-- **General**: position, size, auto-hide, multiple displays, window behaviour, Dock-less mode, open at login.
+- **General**: position, size, auto-hide, multiple displays, window behaviour, Dock-less mode, update checks (daily, weekly or never), open at login.
 - **Appearance**: theme and colors, window titles.
 - **Apps**: app order, favorites, excluded apps, current-Space filtering.
 - **Areas**: show or hide the menu, clock, battery, sound, Trash and Show Desktop.

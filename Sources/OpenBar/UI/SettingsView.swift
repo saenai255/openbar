@@ -65,6 +65,24 @@ private struct GeneralSettings: View {
                 Text("Hides the Dock by giving it an extreme auto-hide delay. Turning it off restores your previous Dock settings.")
                     .font(.caption).foregroundStyle(.secondary)
             }
+            Section("Updates") {
+                Picker("Check for updates", selection: $prefs.updateFrequency) {
+                    Text("Daily").tag(UpdateFrequency.daily)
+                    Text("Weekly").tag(UpdateFrequency.weekly)
+                    Text("Never").tag(UpdateFrequency.never)
+                }
+                HStack {
+                    Text("Version \(UpdateChecker.shared.currentVersion)")
+                        .foregroundStyle(.secondary)
+                    if let last = UpdateChecker.shared.lastCheck {
+                        Text("· last checked \(last, format: .relative(presentation: .named))")
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Check Now") { UpdateChecker.shared.check(userInitiated: true) }
+                }
+                .font(.callout)
+            }
             Section {
                 Toggle("Open on login", isOn: $launchAtLogin)
                     .onChange(of: launchAtLogin) { _, on in
