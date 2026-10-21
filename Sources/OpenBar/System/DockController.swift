@@ -1,6 +1,8 @@
 import Foundation
 
 /// Dock-less mode: pushes the Dock out of the way by making its auto-hide delay effectively infinite.
+/// The hide animation stays instant: Mission Control force-shows the Dock, and a slow
+/// animation would then leave it stuck on screen.
 enum DockController {
     private static let backupKey = "dockBackup"
     private static let managedKeys = ["autohide", "autohide-delay", "autohide-time-modifier", "no-bouncing"]
@@ -9,7 +11,15 @@ enum DockController {
 
     static func apply(dockless: Bool) {
         let isApplied = UserDefaults.standard.dictionary(forKey: backupKey) != nil
-        if dockless && !isApplied { enable() } else if !dockless && isApplied { disable() }
+        if dockless && !isApplied {
+            enable()
+        } else if !dockless && isApplied {
+            disable()
+        } else if dockless && dockDefaults?.double(forKey: "autohide-time-modifier") != 0 {
+            // Repairs installs from 1.0.0, which set a huge animation time.
+            write("autohide-time-modifier", "-float", "0")
+            restartDock()
+        }
     }
 
     private static func enable() {
@@ -20,7 +30,7 @@ enum DockController {
         UserDefaults.standard.set(backup, forKey: backupKey)
         write("autohide", "-bool", "YES")
         write("autohide-delay", "-float", "1000000")
-        write("autohide-time-modifier", "-float", "1000000")
+        write("autohide-time-modifier", "-float", "0")
         write("no-bouncing", "-bool", "YES")
         restartDock()
     }
