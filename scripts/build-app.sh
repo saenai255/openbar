@@ -2,9 +2,12 @@
 # Builds OpenBar.app into ./build. Signs with SIGN_IDENTITY, else the identity made by
 # create-signing-cert.sh if present, else ad-hoc. A stable identity lets macOS
 # keep Accessibility/Screen Recording grants across rebuilds; ad-hoc does not.
+# --install also copies it to /Applications, replacing a running copy.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+INSTALL=false
+if [ "${1:-}" = "--install" ]; then INSTALL=true; fi
 CONFIG="${CONFIG:-release}"
 APP="build/OpenBar.app"
 # Local builds take their version from the latest tag so the update check doesn't misfire.
@@ -37,3 +40,12 @@ fi
 codesign --force --timestamp=none --sign "${SIGN_IDENTITY:--}" ${KEYCHAIN:+--keychain "$KEYCHAIN"} "$APP"
 echo "Signed with: ${SIGN_IDENTITY:-ad-hoc}"
 echo "Built $APP"
+
+if $INSTALL; then
+    pkill -x OpenBar 2>/dev/null || true
+    rm -rf /Applications/OpenBar.app
+    cp -R "$APP" /Applications/OpenBar.app
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f /Applications/OpenBar.app
+    echo "Installed /Applications/OpenBar.app"
+    open /Applications/OpenBar.app
+fi

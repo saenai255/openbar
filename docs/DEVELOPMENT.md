@@ -12,6 +12,7 @@ OpenBar is a Swift package (AppKit + SwiftUI) with no Xcode project.
 ```bash
 ./scripts/build-app.sh            # build/OpenBar.app for this Mac's architecture
 open build/OpenBar.app
+./scripts/build-app.sh --install  # also copy it to /Applications, replacing a running copy
 
 UNIVERSAL=1 VERSION=1.2.0 ./scripts/build-app.sh   # arm64 + x86_64, with a version number
 ./scripts/make-dmg.sh                               # build/OpenBar-<version>.dmg
